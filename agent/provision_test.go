@@ -143,6 +143,7 @@ var _ = Describe("Provision/Agent", func() {
 			releaseUpdateAction(ctx, req, reply, prov, nil)
 			Expect(reply.Statuscode).To(Equal(mcorpc.OK))
 			Expect(reply.Statusmsg).To(Equal(""))
+
 		})
 	})
 

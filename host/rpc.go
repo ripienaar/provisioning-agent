@@ -62,6 +62,49 @@ func (h *Host) rpcDo(ctx context.Context, agent string, action string, input int
 
 }
 
+func (h *Host) upgrade(ctx context.Context) (upgraded bool, err error) {
+	if h.desiredVersion == "" {
+		return false, nil
+	}
+
+	current, err := h.Version()
+	if err != nil {
+		return false, fmt.Errorf("could not determine current version: %s", err)
+	}
+
+	if current == h.desiredVersion {
+		return false, nil
+	}
+
+	h.log.Infof("Upgrading %s from %s to %s", h, current, h.desiredVersion)
+
+	ureq := &provision.ReleaseUpdateRequest{
+		Repository: h.cfg.UpdateRepository,
+		Token:      h.cfg.Token,
+		Version:    h.desiredVersion,
+	}
+
+	_, err = h.rpcDo(ctx, "choria_provision", "release_update", ureq, func(pr protocol.Reply, reply *rpc.RPCReply) {
+		if reply.Statuscode != mcorpc.OK {
+			h.log.Errorf("Upgrading %s failed: %s", h, reply.Statusmsg)
+			err = fmt.Errorf(reply.Statusmsg)
+			return
+		}
+
+		r := &provision.Reply{}
+		err := json.Unmarshal(reply.Data, r)
+		if err != nil {
+			h.log.Errorf("Could not parse reply from %s: %s", pr.SenderID(), err)
+			return
+		}
+
+		h.log.Infof("Upgrade response: %s", r.Message)
+		upgraded = true
+	})
+
+	return upgraded, err
+}
+
 func (h *Host) restart(ctx context.Context) error {
 	h.log.Info("Restarting node")
 

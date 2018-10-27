@@ -18,6 +18,7 @@ type ConfigResponse struct {
 	Msg           string            `json:"msg"`
 	Certificate   string            `json:"certificate"`
 	CA            string            `json:"ca"`
+	Version       string            `json:"version"`
 	Configuration map[string]string `json:"configuration"`
 }
 

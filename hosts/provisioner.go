@@ -18,15 +18,17 @@ func provisioner(ctx context.Context, wg *sync.WaitGroup, i int) {
 		case host := <-work:
 			log.Infof("Provisioning %s", host.Identity)
 
-			err := provisionTarget(ctx, host)
+			delay, err := provisionTarget(ctx, host)
 			if err != nil {
 				provErrCtr.WithLabelValues(conf.Site).Inc()
 				log.Errorf("Could not provision %s: %s", host.Identity, err)
 			}
 
 			// delay removing the node to avoid a race between discovery and node restarting splay
+			// but during upgrades we'll want to remove the node immediately so its restart again
+			// causes a provision to be done
 			go func() {
-				<-time.NewTimer(20 * time.Second).C
+				<-time.NewTimer(delay).C
 				done <- host
 			}()
 
@@ -37,18 +39,18 @@ func provisioner(ctx context.Context, wg *sync.WaitGroup, i int) {
 	}
 }
 
-func provisionTarget(ctx context.Context, target *host.Host) error {
+func provisionTarget(ctx context.Context, target *host.Host) (cleanDelay time.Duration, err error) {
 	busyWorkerGauge.WithLabelValues(conf.Site).Inc()
 	defer busyWorkerGauge.WithLabelValues(conf.Site).Dec()
 
-	err := target.Provision(ctx, fw)
+	delay, err := target.Provision(ctx, fw)
 	if err != nil {
-		return err
+		return delay, err
 	}
 
 	provisionedCtr.WithLabelValues(conf.Site).Inc()
 
-	return nil
+	return delay, nil
 }
 
 func finisher(ctx context.Context, wg *sync.WaitGroup) {

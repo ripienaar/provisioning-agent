@@ -18,16 +18,17 @@ var Version = "0.0.0"
 
 // Config is the configuration structure
 type Config struct {
-	Workers     int                              `json:"workers"`
-	Interval    string                           `json:"interval"`
-	Logfile     string                           `json:"logfile"`
-	Loglevel    string                           `json:"loglevel"`
-	Helper      string                           `json:"helper"`
-	Token       string                           `json:"token"`
-	Insecure    bool                             `json:"choria_insecure"`
-	Site        string                           `json:"site"`
-	MonitorPort int                              `json:"monitor_port"`
-	Management  *backplane.StandardConfiguration `yaml:"management"`
+	Workers          int                              `json:"workers"`
+	Interval         string                           `json:"interval"`
+	Logfile          string                           `json:"logfile"`
+	Loglevel         string                           `json:"loglevel"`
+	Helper           string                           `json:"helper"`
+	Token            string                           `json:"token"`
+	Insecure         bool                             `json:"choria_insecure"`
+	Site             string                           `json:"site"`
+	MonitorPort      int                              `json:"monitor_port"`
+	UpdateRepository string                           `json:"update_repository"`
+	Management       *backplane.StandardConfiguration `yaml:"management"`
 
 	Features struct {
 		PKI bool `json:"pki"`
